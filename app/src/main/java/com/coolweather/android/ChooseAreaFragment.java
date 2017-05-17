@@ -1,7 +1,10 @@
 package com.coolweather.android;
 
+import android.annotation.TargetApi;
 import android.app.Fragment;
 import android.app.ProgressDialog;
+import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -57,6 +60,7 @@ public class ChooseAreaFragment extends Fragment {
     // 当前选中的级别
     private int currentLevel;
 
+    @TargetApi(Build.VERSION_CODES.M)
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
@@ -64,7 +68,10 @@ public class ChooseAreaFragment extends Fragment {
         titleText = (TextView) view.findViewById(R.id.title_text);
         backButton = (Button) view.findViewById(R.id.back_button);
         listView = (ListView) view.findViewById(R.id.list_view);
+
         adapter = new ArrayAdapter<>(getContext(),android.R.layout.simple_list_item_1,dataList);
+        //  上面那行的getContent（），问题还不知道是哪里出问题，有问题再解决
+
         listView.setAdapter(adapter);
         return view;
     }
@@ -85,6 +92,13 @@ public class ChooseAreaFragment extends Fragment {
                 {
                     selectedCity = cityList.get(position);
                     queryCounties();
+                }else if(currentLevel == LEVEL_COUNTY)
+                {
+                    String weatherId = countyList.get(position).getWeatherId();
+                    Intent intent = new Intent(getActivity(),WeatherActivity.class);
+                    intent.putExtra("weather_id",weatherId);
+                    startActivity(intent);
+                    getActivity().finish();
                 }
             }
         });
@@ -186,12 +200,16 @@ public class ChooseAreaFragment extends Fragment {
             public void onFailure(Call call, IOException e) {
                 // 通过runOnUiThread（）方法回到主线程处理逻辑
                 getActivity().runOnUiThread(new Runnable() {
+                    @TargetApi(Build.VERSION_CODES.M)
                     @Override
                     public void run() {
                         closeProgressDialog();
                         Toast.makeText(getContext(),"加载失败",Toast.LENGTH_SHORT).show();
                     }
                 });
+
+                // 注意： 这里的getContent（）和上面的一样还没有解决
+
             }
 
             @Override
